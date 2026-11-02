@@ -1,0 +1,15 @@
+{
+  "name": "duckdb",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "quack:create": "bash ./scripts/duckdb-quack-server.sh create",
+    "quack:status": "bash ./scripts/duckdb-quack-server.sh status",
+    "quack:connect": "bash ./scripts/duckdb-quack-server.sh connect",
+    "quack:ssh": "bash ./scripts/duckdb-quack-server.sh ssh",
+    "quack:destroy": "bash ./scripts/duckdb-quack-server.sh destroy"
+  }
+}
