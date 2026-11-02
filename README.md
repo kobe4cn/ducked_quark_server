@@ -92,9 +92,31 @@ pnpm quack:destroy
 
 当创建脚本运行完成后，服务端便就绪于 `quack:<公网IP>.nip.io:443`。
 
-### 1. 本地 DuckDB CLI 或 Python 调用
+### 1. 本地 DuckDB CLI 一键直连 (最推荐)
+项目已内置全自动连接命令，会自动校验/就绪本地 DuckDB 2.0.0 CLI、拉取远程凭证并自动将服务端挂载为 `remote` 库：
+```bash
+pnpm quack:connect
+# 或者: ./scripts/duckdb-quack-server.sh connect
+```
 
-在你的本地 DuckDB 控制台中执行：
+进入交互终端后可直接查询：
+```sql
+-- 1. 查看远程服务端身份与运行状态
+FROM quack_query('quack:54.x.x.x.nip.io:443', 'FROM whoami()');
+
+-- 2. 直接在远程服务端计算
+FROM quack_query_by_name('remote', 'SELECT 1 + 1 AS result');
+
+-- 3. 在远程服务端创建临时数据并计算
+FROM quack_query_by_name('remote', 'CREATE TEMP TABLE test_table AS SELECT range AS id FROM range(1000)');
+FROM quack_query_by_name('remote', 'SELECT count(*), avg(id) FROM test_table');
+```
+
+---
+
+### 2. 手动在 DuckDB 2.0.0+ 客户端中连接
+
+在你的本地 DuckDB 2.0.0+ 控制台中执行：
 
 ```sql
 -- 1. 安装并加载 quack 核心扩展
@@ -109,15 +131,12 @@ CREATE SECRET quack_credentials (
 );
 
 -- 3. 发起远程 RPC 单次调用
-FROM rpc_call('quack:54.x.x.x.nip.io:443', 'FROM whoami()');
-FROM rpc_call('quack:54.x.x.x.nip.io:443', 'SELECT 42 * 2 AS answer');
+FROM quack_query('quack:54.x.x.x.nip.io:443', 'FROM whoami()');
+FROM quack_query('quack:54.x.x.x.nip.io:443', 'SELECT 42 * 2 AS answer');
 
 -- 4. 通过 ATTACH 建立持久化会话（支持临时表与服务端状态保持）
 ATTACH 'quack:54.x.x.x.nip.io:443' AS remote (TYPE QUACK);
-
--- 在远程服务端创建临时数据并计算
-FROM rpc_call_by_name('remote', 'CREATE TEMP TABLE test_table AS SELECT range AS id FROM range(1000)');
-FROM rpc_call_by_name('remote', 'SELECT count(*), avg(id) FROM test_table');
+FROM quack_query_by_name('remote', 'SELECT 1 + 1');
 ```
 
 ### 2. Web 浏览器直连 (shell.duckdb.org)
